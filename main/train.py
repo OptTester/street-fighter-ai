@@ -25,9 +25,9 @@ NUM_ENV = 16
 LOG_DIR = 'logs'
 os.makedirs(LOG_DIR, exist_ok=True)
 
+
 # Linear scheduler
 def linear_schedule(initial_value, final_value=0.0):
-
     if isinstance(initial_value, str):
         initial_value = float(initial_value)
         final_value = float(final_value)
@@ -38,19 +38,23 @@ def linear_schedule(initial_value, final_value=0.0):
 
     return scheduler
 
+
 def make_env(game, state, seed=0):
     def _init():
         env = retro.make(
-            game=game, 
-            state=state, 
-            use_restricted_actions=retro.Actions.FILTERED, 
-            obs_type=retro.Observations.IMAGE    
+            game=game,
+            state=state,
+            use_restricted_actions=retro.Actions.FILTERED,
+            obs_type=retro.Observations.IMAGE
         )
-        env = StreetFighterCustomWrapper(env)
+        #env = StreetFighterCustomWrapper(env)
+        env = StreetFighterCustomWrapper(env, rendering=True)
         env = Monitor(env)
         env.seed(seed)
         return env
+
     return _init
+
 
 def main():
     # Set up the environment and model
@@ -72,9 +76,9 @@ def main():
     # clip_range_schedule = linear_schedule(0.075, 0.025)
 
     model = PPO(
-        "CnnPolicy", 
+        "CnnPolicy",
         env,
-        device="cuda", 
+        device="cuda",
         verbose=1,
         n_steps=512,
         batch_size=512,
@@ -91,7 +95,7 @@ def main():
 
     # Load the model from file
     # model_path = "trained_models/ppo_ryu_7000000_steps.zip"
-    
+
     # Load model and modify the learning rate and entropy coefficient
     # custom_objects = {
     #     "learning_rate": lr_schedule,
@@ -102,7 +106,7 @@ def main():
 
     # Set up callbacks
     # Note that 1 timesetp = 6 frame
-    checkpoint_interval = 31250 # checkpoint_interval * num_envs = total_steps_per_checkpoint
+    checkpoint_interval = 31250  # checkpoint_interval * num_envs = total_steps_per_checkpoint
     checkpoint_callback = CheckpointCallback(save_freq=checkpoint_interval, save_path=save_dir, name_prefix="ppo_ryu")
 
     # Writing the training logs from stdout to a file
@@ -110,10 +114,10 @@ def main():
     log_file_path = os.path.join(save_dir, "training_log.txt")
     with open(log_file_path, 'w') as log_file:
         sys.stdout = log_file
-    
+
         model.learn(
-            total_timesteps=int(100000000), # total_timesteps = stage_interval * num_envs * num_stages (1120 rounds)
-            callback=[checkpoint_callback]#, stage_increase_callback]
+            total_timesteps=int(100000000),  # total_timesteps = stage_interval * num_envs * num_stages (1120 rounds)
+            callback=[checkpoint_callback]  # , stage_increase_callback]
         )
         env.close()
 
@@ -122,6 +126,7 @@ def main():
 
     # Save the final model
     model.save(os.path.join(save_dir, "ppo_sf2_ryu_final.zip"))
+
 
 if __name__ == "__main__":
     main()

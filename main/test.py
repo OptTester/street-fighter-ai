@@ -33,6 +33,7 @@ RANDOM_ACTION = False
 NUM_EPISODES = 30 # Make sure NUM_EPISODES >= 3 if you set RESET_ROUND to False to see the whole final stage game.
 MODEL_DIR = r"trained_models/"
 
+
 def make_env(game, state):
     def _init():
         env = retro.make(
@@ -44,6 +45,7 @@ def make_env(game, state):
         env = StreetFighterCustomWrapper(env, reset_round=RESET_ROUND, rendering=RENDERING)
         return env
     return _init
+
 
 game = "StreetFighterIISpecialChampionEdition-Genesis"
 env = make_env(game, state="Champion.Level12.RyuVsBison")()
@@ -61,9 +63,10 @@ num_victory = 0
 
 print("\nFighting Begins!\n")
 
-for _ in range(num_episodes):
+for counter in range(num_episodes):
     done = False
-    
+    print("Iteration {}".format(counter))
+
     if RESET_ROUND:
         obs = env.reset()
 
